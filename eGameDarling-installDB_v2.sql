@@ -22,7 +22,7 @@ CREATE TABLE T_Accounts
 (
     p_account_id CHAR(10) NOT NULL,
     username     VARCHAR(50) UNIQUE,
-    password     VARCHAR(50),
+    password     VARCHAR(255),
     nickname     VARCHAR(50),
     avatar       BLOB
 );

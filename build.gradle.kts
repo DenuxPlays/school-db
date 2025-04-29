@@ -27,8 +27,15 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.36")
     implementation("org.jetbrains:annotations:24.0.0")
 
+    // Crypto implementation
+    implementation("org.bouncycastle:bcprov-jdk18on:1.80")
+    implementation("org.springframework.security:spring-security-crypto:6.4.5")
+
     // DB Driver
     implementation("org.mariadb.jdbc:mariadb-java-client:3.5.3")
+
+    // Logger implementation -> needed to get spring-security-crypto to work
+    implementation("commons-logging:commons-logging:1.3.5")
 }
 
 tasks.withType<JavaCompile>().configureEach {

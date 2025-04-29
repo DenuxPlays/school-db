@@ -2,6 +2,7 @@ package dev.denux.account;
 
 import dev.denux.database.ConnectionManager;
 import dev.denux.utils.Credentials;
+import dev.denux.utils.PasswordHasher;
 import dev.denux.utils.RandomStringGenerator;
 
 import java.sql.Connection;
@@ -26,17 +27,24 @@ public class AccountManager {
         System.out.println("Login with our Account.");
         Credentials credentials = Credentials.getFromStdIn(this.stdIn);
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM T_Accounts WHERE username = ? AND password = ?");
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM T_Accounts WHERE username = ?");
             preparedStatement.setString(1, credentials.username());
-            preparedStatement.setString(2, credentials.password());
 
             ResultSet rs = preparedStatement.executeQuery();
-            if (rs.next()) {
-                System.out.println("Login successful!");
-            } else {
-                System.out.println("Login failed! Please try again.");
+            if (!rs.next()) {
+                System.out.println("Account not found! Please try again.");
                 retryLoginOrRegister();
+                return;
             }
+
+            String hashedPassword = rs.getString("password");
+            if (PasswordHasher.verifyPassword(credentials.password(), hashedPassword)) {
+                System.out.println("Login successful!");
+                return;
+            }
+
+            System.out.println("Invalid password! Please try again.");
+            retryLoginOrRegister();
         } catch (SQLException exception) {
             System.err.println("A Database error occurred: " + exception.getMessage());
         }
@@ -62,10 +70,12 @@ public class AccountManager {
 
         Connection connection = connectionManager.getConnection();
         try {
+            final String hashedPassword = PasswordHasher.hashPassword(credentials.password());
+
             PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO T_Accounts (p_account_id, username, password) VALUES (?, ?, ?)");
             preparedStatement.setString(1, RandomStringGenerator.generateRandomString(10));
             preparedStatement.setString(2, credentials.username());
-            preparedStatement.setString(3, credentials.password());
+            preparedStatement.setString(3, hashedPassword);
 
             preparedStatement.executeUpdate();
             System.out.println("Account created successfully!");
